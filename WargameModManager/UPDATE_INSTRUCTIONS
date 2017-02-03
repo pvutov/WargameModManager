@@ -1,0 +1,7 @@
+For auto update to work, you need to create a github repository for your mod.
+Every time you release a new version, make a release on github as well, with the follwing format:
+ -the tag should be in the format a.b.c.d, higher than that of previous releases (if you want the update mechanism to be triggered).
+ -the title can be anything.
+ -the description should be a list of changes [not prefixed by "Changelog" or anything like that].
+ -a single .zip should be included with the contents of the YOURMOD directory [refer to PUBLISH_INSTRUCTIONS for the format of that]. The zip contents will go directly into the YOURMOD directory, so do not put wrapper folders.
+ -don't forget to increment the version entry in the UPDATE file - it should always be the same as the tag of the release it is in.
