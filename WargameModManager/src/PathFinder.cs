@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -187,7 +188,7 @@ namespace WargameModManager {
         //}
 
         // source: https://msdn.microsoft.com/en-us/library/bb762914(v=vs.110).aspx
-        private static void directoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
+        public static void directoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new DirectoryInfo(sourceDirName);
 
@@ -217,6 +218,33 @@ namespace WargameModManager {
                     directoryCopy(subdir.FullName, temppath, copySubDirs);
                 }
             }
+        }
+
+        public ModUpdateInfo[] getModUpdateInfo () {
+            List<ModUpdateInfo> result = new List<ModUpdateInfo>();
+            string mods = getModsDir();
+
+            foreach (string mod in Directory.GetDirectories(mods)) {
+                string updateFile = Path.Combine(mod, "UPDATE");
+                if (File.Exists(updateFile)) {
+                    string version = null;
+                    string url = null;
+
+                    foreach (string line in File.ReadAllLines(updateFile)) {
+                        if (line.StartsWith("releaseRepo:")) {
+                            url = line.Substring("releaseRepo:".Length);
+                        } else if (line.StartsWith("version:")) {
+                            version = line.Substring("version:".Length);
+                        }
+                    }
+
+                    if (version != null && url != null) {
+                        result.Add(new ModUpdateInfo(new DirectoryInfo(mod).Name, version, url, mod));
+                    }
+                }
+            }
+
+            return result.ToArray();
         }
     }
 }

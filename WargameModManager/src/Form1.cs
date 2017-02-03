@@ -6,7 +6,6 @@ using System.Windows.Forms;
 
 namespace WargameModManager {
     public partial class Form1 : Form {
-        private const string MODMANAGER_LATEST_RELEASE = @"https://api.github.com/repos/pvutov/WargameModManager/releases/latest";
         private String[] args;
         private PathFinder directories;
 
@@ -53,11 +52,52 @@ namespace WargameModManager {
 
             // CHECK FOR MOD UPDATES
 
+            ModUpdateInfo[] infos = directories.getModUpdateInfo();
+            foreach (ModUpdateInfo info in infos) {
+                ModUpdater modUpdater = new ModUpdater(info);
+
+                if (modUpdater.checkForUpdates()) {
+                    // update
+                    ProgressBar progressBar = new ProgressBar();
+                    progressBar.Name = "downloadProgressBar";
+                    progressBar.Maximum = 100;
+                    progressBar.Scale(new SizeF(0.7f, 1f));
+
+                    Panel container = new Panel();
+                    container.Location = updateButton.Location;
+                    container.Controls.Add(progressBar);
+
+                    this.Controls.Remove(updateButton);
+                    this.Controls.Add(container);
+                    
+                    string caption = "New version of " + info.getName() + " found!";
+                    string message = "Changelog: \n" + modUpdater.getPatchNotes() + "\n\nApply update?'";
+
+                    DialogResult decision = MessageBox.Show(message, caption,
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    if (decision == DialogResult.Yes) {
+                        modUpdater.applyUpdate((int val) => { progressBar.Value = val; });
+                    }
+
+                    // remove progress bar when it is done
+                    var t = new Timer();
+                    t.Interval = 2000;
+                    t.Tick += (s, _) => {
+                        if (progressBar.Value == progressBar.Maximum) {
+                            this.Controls.Remove(container);
+                            this.Controls.Add(updateButton);
+                            t.Stop();
+                        }
+                    };
+                    t.Start();
+                }
+            }
+
 
             // no mod updates were found, but mod manager can be updated
-            ModManagerUpdater updater = new ModManagerUpdater(MODMANAGER_LATEST_RELEASE);
+            ModManagerUpdater appUpdater = new ModManagerUpdater();
 
-            if (updater.checkForUpdates()) {
+            if (appUpdater.checkForUpdates()) {
                 // update
                 ProgressBar progressBar = new ProgressBar();
                 progressBar.Name = "downloadProgressBar";
@@ -71,7 +111,7 @@ namespace WargameModManager {
                 this.Controls.Remove(updateButton);
                 this.Controls.Add(container);
 
-                updater.applyUpdate((int val) => { progressBar.Value = val; });
+                appUpdater.applyUpdate((int val) => { progressBar.Value = val; });
 
                 // remove progress bar when it is done
                 var t = new Timer();
