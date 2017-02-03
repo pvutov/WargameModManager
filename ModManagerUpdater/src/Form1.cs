@@ -7,12 +7,12 @@ using System.Windows.Forms;
 
 namespace Updater {
     public partial class Form1 : Form {
-        private String wargameDir;
-        public Form1(String wargameDir, String patchNotes) {
+        private String programDir;
+        public Form1(String programDir, String patchNotes) {
             InitializeComponent();
-            this.wargameDir = wargameDir;
-            if (wargameDir.Last() != '\\') {
-                this.wargameDir += '\\';
+            this.programDir = programDir;
+            if (programDir.Last() != '\\') {
+                this.programDir += '\\';
             }
             changeListLabel.Text = patchNotes.Replace(@"\r\n", Environment.NewLine);
         }
@@ -26,7 +26,7 @@ namespace Updater {
             foreach (String f in Directory.GetFiles(Path.GetDirectoryName(thisFile))) {
                 if (f != thisFile) {
                     try {
-                        File.Copy(f, wargameDir + Path.GetFileName(f), true);
+                        File.Copy(f, programDir + Path.GetFileName(f), true);
                     }
                     catch (IOException) {
                         Program.warning("Could not write to file " + f 
@@ -35,8 +35,8 @@ namespace Updater {
                 }
             }
 
-            if (File.Exists(wargameDir + "Wargame3.exe")) {
-                Process.Start(wargameDir + "Wargame3.exe");
+            if (File.Exists(programDir + "WargameModManager.exe")) {
+                Process.Start(programDir + "WargameModManager.exe");
             }
             Application.Exit();
         }
