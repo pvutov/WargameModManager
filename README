@@ -1,0 +1,2 @@
+WargameModManager - The core product, a launcher that wraps the wargame exe, applies mods at the user's behest, and updates those mods.
+ModManagerUpdater - A bootstrap for updating the mod manager itself.
