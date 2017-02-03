@@ -51,12 +51,15 @@ namespace WargameModManager {
         private void updateButton_Click(object sender, EventArgs e) {
 
             // CHECK FOR MOD UPDATES
+            bool newest = true;
 
             ModUpdateInfo[] infos = directories.getModUpdateInfo();
             foreach (ModUpdateInfo info in infos) {
                 ModUpdater modUpdater = new ModUpdater(info);
 
                 if (modUpdater.checkForUpdates()) {
+                    newest = false;
+
                     // update
                     ProgressBar progressBar = new ProgressBar();
                     progressBar.Name = "downloadProgressBar";
@@ -66,9 +69,6 @@ namespace WargameModManager {
                     Panel container = new Panel();
                     container.Location = updateButton.Location;
                     container.Controls.Add(progressBar);
-
-                    this.Controls.Remove(updateButton);
-                    this.Controls.Add(container);
                     
                     string caption = "New version of " + info.getName() + " found!";
                     string message = "Changelog: \n" + modUpdater.getPatchNotes() + "\n\nApply update?'";
@@ -76,25 +76,31 @@ namespace WargameModManager {
                     DialogResult decision = MessageBox.Show(message, caption,
                         MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (decision == DialogResult.Yes) {
+                        this.Controls.Remove(updateButton);
+                        this.Controls.Add(container);
+
                         modUpdater.applyUpdate((int val) => { progressBar.Value = val; });
+
+                        // remove progress bar when it is done
+                        var t = new Timer();
+                        t.Interval = 2000;
+                        t.Tick += (s, _) => {
+                            if (progressBar.Value == progressBar.Maximum) {
+                                this.Controls.Remove(container);
+                                this.Controls.Add(updateButton);
+                                t.Stop();
+                            }
+                        };
+                        t.Start();
                     }
 
-                    // remove progress bar when it is done
-                    var t = new Timer();
-                    t.Interval = 2000;
-                    t.Tick += (s, _) => {
-                        if (progressBar.Value == progressBar.Maximum) {
-                            this.Controls.Remove(container);
-                            this.Controls.Add(updateButton);
-                            t.Stop();
-                        }
-                    };
-                    t.Start();
                 }
             }
 
+            checkModManagerUpdates(newest);
+        }
 
-            // no mod updates were found, but mod manager can be updated
+        private void checkModManagerUpdates(bool newest) {
             ModManagerUpdater appUpdater = new ModManagerUpdater();
 
             if (appUpdater.checkForUpdates()) {
@@ -115,7 +121,7 @@ namespace WargameModManager {
 
                 // remove progress bar when it is done
                 var t = new Timer();
-                t.Interval = 10000;
+                t.Interval = 2000;
                 t.Tick += (s, _) => {
                     if (progressBar.Value == progressBar.Maximum) {
                         this.Controls.Remove(container);
@@ -125,7 +131,7 @@ namespace WargameModManager {
                 };
                 t.Start();
             }
-            else {
+            else if (newest) {
                 // remove button, show and disappear text
                 Label updateMessageLabel = new Label();
                 updateMessageLabel.Name = "updateMessageLabel";
@@ -138,13 +144,14 @@ namespace WargameModManager {
                 this.Controls.Add(updateMessageLabel);
 
                 var t = new Timer();
-                t.Interval = 4000;
+                t.Interval = 2000;
                 t.Tick += (s, _) => {
                     this.Controls.Remove(updateMessageLabel);
                     t.Stop();
                 };
                 t.Start();
             }
+
         }
     }
 }

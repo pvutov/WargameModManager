@@ -25,7 +25,7 @@ namespace WargameModManager {
 
             // specify API version to use for stability
             request.Accept = "application/vnd.github.v3.raw+json";
-            request.UserAgent = "pvutov/WargameModManager";
+            request.UserAgent = "pvutov/WargameModManagerMods";
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (Stream stream = response.GetResponseStream())
@@ -37,8 +37,8 @@ namespace WargameModManager {
             patchNotes = getStringJsonField("body", responseJson);
             downloadUrl = getStringJsonField("browser_download_url", responseJson);
 
-            DirectoryInfo di = Directory.CreateDirectory(Path.GetTempPath() + "WargameModManager");
-            downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManager");
+            DirectoryInfo di = Directory.CreateDirectory(Path.GetTempPath() + "WargameModManagerMods");
+            downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManagerMods");
             zipPath = Path.Combine(downloadDir, "WargameModManagerUpdate.zip");
 
             // make sure download dir is empty
