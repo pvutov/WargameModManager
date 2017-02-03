@@ -1,0 +1,1 @@
+Note that the UPDATE file in sampleMod.zip points to this repository, which wouldn't really work because this repository holds ModManager releases, not mod releases. But if the sampleMod.zip were uploaded as a release to this repository, it would work.
