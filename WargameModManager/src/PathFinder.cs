@@ -28,7 +28,7 @@ namespace WargameModManager {
             return askUserForWargameDir("");
         }
 
-        private string askUserForWargameDir(string error) {
+        public string askUserForWargameDir(string error) {
             DialogResult res;
             String folderPath;
 
@@ -43,16 +43,17 @@ namespace WargameModManager {
 
             if (res != DialogResult.OK) {
                 Application.Exit();
+                Environment.Exit(0);
                 return "";
             }
             else {
                 String exe = Path.Combine(folderPath, "Wargame3.exe");
 
-                if (System.IO.File.Exists(exe)) {
+                if (File.Exists(exe)) {
 
                     // Save dir for next time:
                     string[] lines = { "dir:" + folderPath };
-                    System.IO.File.WriteAllLines(ini_path, lines);
+                    File.WriteAllLines(ini_path, lines);
 
                     return folderPath;
                 }
