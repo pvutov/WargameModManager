@@ -1,0 +1,14 @@
+﻿To publish a mod, prepare it in the following format:
+YOURMOD/bin/* <- The main files of your mod. Put them all in the top directory, do >not< try to mimic wargame folder structure - the mod manager will try to find the most recent wargame file of the same name and replace that.
+YOURMOD/* <- Mod files that the game doesn't use, for example a README.
+YOURMOD/UPDATE <- If you want update functionality enabled for your mod, 
+ create this text file with the following entries, each on a separate line:
+	version:a.b.c.d <- the current mod version. a,b,c,d can be any number, increment when you make a release. c/d are optional.
+	releaseRepo:https://api.github.com/repos/pvutov/armory/releases/latest <- an address
+		where mod manager can check for updates. You don't have to use github, but the page
+		contents should be similar to what you see on that page - a json with the fields:
+		    tag_name - containing the version of the latest release
+			assets.browser_download_url - containing a zip of the latest release
+			body - containing a change list
+			
+Moving YOURMOD/ under mods/ will get the mod manager to detect it.
