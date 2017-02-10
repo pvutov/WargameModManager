@@ -183,10 +183,6 @@ namespace WargameModManager {
             return Path.Combine(getModsDir(), modName, "bin");
         }
 
-        //private String getModUpdateFile(String modName) {
-        //    return Path.Combine(getModsDir(), modName, "UPDATE");
-        //}
-
         // source: https://msdn.microsoft.com/en-us/library/bb762914(v=vs.110).aspx
         public static void directoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
             // Get the subdirectories for the specified directory.
