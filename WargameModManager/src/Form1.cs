@@ -71,7 +71,7 @@ namespace WargameModManager {
                     container.Controls.Add(progressBar);
                     
                     string caption = "New version of " + info.getName() + " found!";
-                    string message = "Changelog: \n" + modUpdater.getPatchNotes() + "\n\nApply update?'";
+                    string message = "Changelog: \n" + modUpdater.getPatchNotes().Replace("\\r\\n", "\n") + "\n\nApply update?'";
 
                     DialogResult decision = MessageBox.Show(message, caption,
                         MessageBoxButtons.YesNo, MessageBoxIcon.Information);
