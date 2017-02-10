@@ -1,8 +1,12 @@
 ﻿To publish a mod, prepare it in the following format:
-YOURMOD/bin/* <- The main files of your mod. Put them all in the top directory, do >not< try to mimic wargame folder structure - the mod manager will try to find the most recent wargame file of the same name and replace that.
+YOURMOD/bin/* <- The main files of your mod. There are two ways to structure your mod files:
+   If you mimic wargame folder structure, start from the version number. For example, the full path to a modded ZZ_Win.dat could be YOURMOD/bin/510061340/510064564/ZZ_Win.dat [assuming that's the version you're modding for]
+   Alternatively, you can put all mod files in the top directory. For example, YOURMOD/bin/NDF_Win.dat. The mod manager will find the newest file of the same name [NDF_Win.dat in this case] in Data\WARGAME\PC, and replace that.
+      This approach has the advantage that you won't need to update your file structure every time a new wargame version is deployed. The heuristic fails for some files, for example ZZ_4.dat often has dummy unused copies placed "above" the main ZZ_4.dat. I may write some special cases for files like this if anyone is making mods with ZZ_4.dat etc - inform me about files you wish were functional with the heuristic.
+   You can use a mix of the above two approaches - files with absolute adressing [first option] will be applied first, and then potentially overwritten by any toplevel files [second option].
 YOURMOD/* <- Mod files that the game doesn't use, for example a README.
 YOURMOD/UPDATE <- If you want update functionality enabled for your mod, 
- create this text file with the following entries, each on a separate line:
+   create this text file with the following entries, each on a separate line:
 	version:a.b.c.d <- the current mod version. a,b,c,d can be any number, increment when you make a release. c/d are optional.
 	releaseRepo:https://api.github.com/repos/pvutov/armory/releases/latest <- an address
 		where mod manager can check for updates. You don't have to use github, but the page

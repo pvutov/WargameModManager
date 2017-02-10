@@ -9,6 +9,11 @@ namespace WargameModManager {
     class PathFinder {
         private String ini_path = AppDomain.CurrentDomain.BaseDirectory + "settings.ini";
         private string wargameDir;
+
+        /// <summary>
+        /// The folder all wargame updates go into. 
+        /// Probably ..DirOfExe/Data/WARGAME/PC
+        /// </summary>
         private string searchDir;
 
         public PathFinder() {
@@ -66,7 +71,7 @@ namespace WargameModManager {
 
         private bool tryReadIni(out string result) {
 
-            string[] lines = System.IO.File.ReadAllLines(ini_path);
+            string[] lines = File.ReadAllLines(ini_path);
             foreach (string line in lines) {
                 if (line.StartsWith("dir:")) {
                     result = line.Substring("dir:".Length);
@@ -165,7 +170,18 @@ namespace WargameModManager {
 
         public void activateMod(String modName) {
             if (modName != "vanilla") {
-                foreach (string modFile in Directory.GetFiles(getModFilesDir(modName))) {
+                string modDir = getModFilesDir(modName);
+
+                foreach (string versionFolder in Directory.GetDirectories(modDir)) {
+                    string versionFolderShort = new DirectoryInfo(versionFolder).Name;
+                    string src = Path.Combine(modDir, versionFolderShort);
+                    string dst = Path.Combine(searchDir, versionFolderShort);
+                    string vanillaDir = Path.Combine(getModsDir(), "vanilla");
+
+                    directoryCopyWithVanillaBackup(src, dst, vanillaDir, true);
+                }
+
+                foreach (string modFile in Directory.GetFiles(modDir)) {
                     string wrdFile = findNewest(Path.GetFileName(modFile));
 
                     saveVanillaFile(wrdFile);
@@ -212,6 +228,42 @@ namespace WargameModManager {
                 foreach (DirectoryInfo subdir in dirs) {
                     string temppath = Path.Combine(destDirName, subdir.Name);
                     directoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
+        }
+
+        public void directoryCopyWithVanillaBackup(string sourceDirName, string destDirName, string vanillaDirName, bool copySubDirs) {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists) {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName)) {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files) {
+                string temppath = Path.Combine(destDirName, file.Name);
+                
+                saveVanillaFile(temppath);
+
+                file.CopyTo(temppath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if (copySubDirs) {
+                foreach (DirectoryInfo subdir in dirs) {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    string vanPath = Path.Combine(vanillaDirName, subdir.Name);
+                    directoryCopyWithVanillaBackup(subdir.FullName, temppath, vanPath, copySubDirs);
                 }
             }
         }
