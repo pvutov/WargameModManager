@@ -88,9 +88,9 @@ namespace WargameModManager {
                     File.Delete(zipPath);
                     String updaterDir = Path.Combine(downloadDir, "Updater.exe");
                     try {
-                        Process.Start(updaterDir,
+                        Process.Start(updaterDir, "\"" +
                             Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
-                            + " " + patchNotes);
+                            + "\" " + patchNotes);
                     }
                     catch (System.ComponentModel.Win32Exception w) {
                         Program.warning(updaterDir + " not found." + w.Message + w.ErrorCode.ToString() + w.NativeErrorCode.ToString());
