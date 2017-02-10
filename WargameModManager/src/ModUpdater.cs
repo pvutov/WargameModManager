@@ -87,7 +87,10 @@ namespace WargameModManager {
                 wc.DownloadFileCompleted += delegate (object sender, System.ComponentModel.AsyncCompletedEventArgs e) {
                     System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, downloadDir);
                     File.Delete(zipPath);
+                    Directory.Delete(modDir, true);
+                    Directory.CreateDirectory(modDir);
                     PathFinder.directoryCopy(downloadDir, modDir, true);
+                    Directory.Delete(downloadDir, true);
                 };
 
                 wc.DownloadFileAsync(new Uri(downloadUrl), zipPath);
