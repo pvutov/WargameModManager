@@ -123,15 +123,14 @@ namespace WargameModManager {
             return Path.Combine(getWargameDir(), "Wargame3.exe");
         }
 
-        private String findNewest(String filename) {
-            // TODO
+        private String findNewestFolder(String filename) {
             string result = null;
             DirectoryInfo di = new DirectoryInfo(searchDir);
 
             // Order from newest
             var ordered = di.GetDirectories().OrderByDescending(x => x.Name);
             foreach (DirectoryInfo innerDi in ordered) {
-                if (tryFindNewestRecursive(filename, innerDi, out result)) {
+                if (tryFindNewestFolderRecursively(filename, innerDi, out result)) {
                     return result;
                 }
             }
@@ -142,7 +141,7 @@ namespace WargameModManager {
             return result;
         }
 
-        private bool tryFindNewestRecursive(String filename, DirectoryInfo di, out string result) {
+        private bool tryFindNewestFolderRecursively(String filename, DirectoryInfo di, out string result) {
             result = null;
             string possibleFilePath = Path.Combine(di.FullName, filename);
 
@@ -155,7 +154,7 @@ namespace WargameModManager {
             // If a file doesn't exist in this directory, recurse on subdirs:
             var ordered = di.GetDirectories().OrderByDescending(x => x.Name);
             foreach (DirectoryInfo innerDi in ordered) {
-                if (tryFindNewestRecursive(filename, innerDi, out result)) {
+                if (tryFindNewestFolderRecursively(filename, innerDi, out result)) {
                     return true;
                 }
             }
@@ -182,7 +181,7 @@ namespace WargameModManager {
                 }
 
                 foreach (string modFile in Directory.GetFiles(modDir)) {
-                    string wrdFile = findNewest(Path.GetFileName(modFile));
+                    string wrdFile = findNewestFolder(Path.GetFileName(modFile));
 
                     saveVanillaFile(wrdFile);
 
