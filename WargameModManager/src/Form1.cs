@@ -26,6 +26,13 @@ namespace WargameModManager {
             }
         }
 
+        private void Form1_Load(object sender, EventArgs e) {
+            if (directories.autoUpdate) {
+                Console.WriteLine("here");
+                updateButton.PerformClick();
+            }
+        }
+
         private void launchButton_Click(object sender, EventArgs e) {
             // Swap in mods
             var selectedButton = modsLayoutPanel.Controls.OfType<RadioButton>()
@@ -135,7 +142,7 @@ namespace WargameModManager {
                 // remove button, show and disappear text
                 Label updateMessageLabel = new Label();
                 updateMessageLabel.Name = "updateMessageLabel";
-                updateMessageLabel.Text = "at newest version";
+                updateMessageLabel.Text = "Everything at newest version.";
                 updateMessageLabel.Location = updateButton.Location;
                 updateMessageLabel.MaximumSize = new Size(updateButton.Size.Width, 0);
                 updateMessageLabel.AutoSize = true;

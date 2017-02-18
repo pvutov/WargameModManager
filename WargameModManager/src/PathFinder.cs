@@ -9,6 +9,10 @@ namespace WargameModManager {
     class PathFinder {
         private String ini_path = AppDomain.CurrentDomain.BaseDirectory + "settings.ini";
         private string wargameDir;
+        private bool _autoUpdate = false;
+        public bool autoUpdate {
+            get { return _autoUpdate; }
+        }
 
         /// <summary>
         /// The folder all wargame updates go into. 
@@ -58,7 +62,9 @@ namespace WargameModManager {
                 if (File.Exists(exe)) {
 
                     // Save dir for next time:
-                    string[] lines = { "dir:" + folderPath };
+                    string[] lines = { "dir:" + folderPath,
+                        // dont autoupdate on first run, but set it for future
+                        "autoupdate:true" };
                     File.WriteAllLines(ini_path, lines);
 
                     return folderPath;
@@ -70,17 +76,20 @@ namespace WargameModManager {
         }
 
         private bool tryReadIni(out string result) {
+            result = "";
 
             string[] lines = File.ReadAllLines(ini_path);
             foreach (string line in lines) {
+                if (line == "autoupdate:true") {
+                    _autoUpdate = true;
+                }
+
                 if (line.StartsWith("dir:")) {
                     result = line.Substring("dir:".Length);
-                    return true;
                 }
             }
 
-            result = "";
-            return false;
+            return result != "";
         }
 
         public String getWargameDir() {
