@@ -33,9 +33,9 @@ namespace WargameModManager {
                 responseJson = reader.ReadToEnd();
             }
 
-            latestVersion = getStringJsonField("tag_name", responseJson);
-            patchNotes = getStringJsonField("body", responseJson);
-            downloadUrl = getStringJsonField("browser_download_url", responseJson);
+            latestVersion = Utility.getStringJsonField("tag_name", responseJson);
+            patchNotes = Utility.getStringJsonField("body", responseJson);
+            downloadUrl = Utility.getStringJsonField("browser_download_url", responseJson);
 
             DirectoryInfo di = Directory.CreateDirectory(Path.GetTempPath() + "WargameModManagerMods");
             downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManagerMods");
@@ -45,23 +45,6 @@ namespace WargameModManager {
             foreach (FileInfo file in di.GetFiles()) {
                 file.Delete();
             }
-        }
-
-        private string getStringJsonField(string field, string json) {
-            string formattedFieldName = "\"" + field + "\":";
-
-            string result = "";
-
-            try {
-                result = json.Substring(json.IndexOf(formattedFieldName) + formattedFieldName.Length);
-
-                result = result.Split('"')[1];
-            }
-            catch (Exception e) when (e is ArgumentOutOfRangeException || e is IndexOutOfRangeException) {
-                Program.warning("JSON field not found.");
-            }
-
-            return result;
         }
 
         public bool checkForUpdates() {
