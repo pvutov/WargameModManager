@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Windows.Forms;
 namespace WargameModManager {
     class PathFinder {
         private String ini_path = AppDomain.CurrentDomain.BaseDirectory + "settings.ini";
+        private readonly String WARGAME_ID_FOLDER = "251060";
         private string wargameDir;
         private bool _autoUpdate = false;
         public bool autoUpdate {
@@ -18,6 +20,8 @@ namespace WargameModManager {
         public bool manageProfiles {
             get { return _manageProfiles; }
         }
+
+        private DirectoryInfo _steamUsersDir;
 
         /// <summary>
         /// The folder all wargame updates go into. 
@@ -41,6 +45,15 @@ namespace WargameModManager {
             }
 
             searchDir = Path.Combine(wargameDir, "Data", "WARGAME", "PC");
+
+            // Get steam users dir from the registry
+            if (_manageProfiles) {
+                RegistryKey regKey = Registry.CurrentUser;
+                regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
+
+                String steamDir = regKey.GetValue("SteamPath").ToString();
+                _steamUsersDir = new DirectoryInfo(Path.Combine(steamDir, "userdata"));
+            }
         }
 
         private string askUserForWargameDir() {
@@ -214,6 +227,7 @@ namespace WargameModManager {
         /// </summary>
         /// <param name="modName"></param>
         public void activateMod(String modName) {
+            // files
             if (modName != "vanilla") {
                 string modDir = getModFilesDir(modName);
 
@@ -237,6 +251,45 @@ namespace WargameModManager {
             else {
                 string vanillaDir = Path.Combine(getModsDir(), "vanilla");
                 directoryCopy(vanillaDir, searchDir, true);
+            }
+
+            // profiles
+            if (_manageProfiles) {
+                foreach (DirectoryInfo userFolder in _steamUsersDir.GetDirectories()) {
+                    DirectoryInfo wargameProfileDir = new DirectoryInfo(Path.Combine(userFolder.FullName, WARGAME_ID_FOLDER, "remote"));
+                    if (wargameProfileDir.Exists) {
+                        String extension = ".wargameprofile";
+                        String activeProfile = Path.Combine(wargameProfileDir.FullName, "PROFILE" + extension);
+
+                        // On first launch, create backup dir and save vanilla profile
+                        String backupDirName = "modmanager";
+                        String backupDir = Path.Combine(wargameProfileDir.FullName, backupDirName);
+                        if (!Directory.Exists(backupDir)) {
+                            Directory.CreateDirectory(backupDir);
+                        }
+
+                        // On first mod launch, create a profile for that mod from the last profile used. 
+                        String modProfile = Path.Combine(backupDir, modName + extension);
+                        if (!File.Exists(modProfile)) {
+                            File.Copy(activeProfile, modProfile, false);
+                        }
+
+                        // Find out what mod was used in the previous launch
+                        String lastModUsedFile = Path.Combine(backupDir, "LAST");
+                        String lastModUsed = "vanilla";
+                        if (File.Exists(lastModUsedFile)) {
+                            lastModUsed = File.ReadAllLines(lastModUsedFile)[0];
+                        }
+
+                        // Save user progress from the previous session
+                        String lastModUsedProfile = Path.Combine(backupDir, lastModUsed + extension);
+                        File.Copy(activeProfile, lastModUsedProfile, true);
+
+                        // Write what mod this session used, and place the appropriate profile.
+                        File.WriteAllText(lastModUsedFile, modName);
+                        File.Copy(modProfile, activeProfile, true);
+                    }
+                }
             }
         }
 
