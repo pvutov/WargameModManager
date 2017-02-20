@@ -21,7 +21,23 @@ namespace WargameModManager {
         public ModUpdater(ModUpdateInfo modInfo) {
             modDir = modInfo.getModDir();
             currentVersion = modInfo.getVersion();
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(modInfo.getUrl());
+            HttpWebRequest request = null;
+            try {
+                request = (HttpWebRequest)WebRequest.Create(modInfo.getUrl());
+            }
+            catch (UriFormatException e) {
+                Program.warning("A mod can't be updated because releaseRepo is invalid. To fix this, open "
+                    + Path.Combine(modDir, "UPDATE") 
+                    + " and delete or adjust the releaseRepo line."
+                    + Environment.NewLine + Environment.NewLine + "Detailed Exception: " 
+                    + Environment.NewLine + e.ToString());
+
+                
+                
+                // Allow checkForUpdates() to do nothing:
+                latestVersion = currentVersion.ToString();
+                return;
+            }
 
             // specify API version to use for stability
             request.Accept = "application/vnd.github.v3.raw+json";
