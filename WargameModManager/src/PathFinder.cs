@@ -14,6 +14,11 @@ namespace WargameModManager {
             get { return _autoUpdate; }
         }
 
+        private bool _manageProfiles = false;
+        public bool manageProfiles {
+            get { return _manageProfiles; }
+        }
+
         /// <summary>
         /// The folder all wargame updates go into. 
         /// Probably ..DirOfExe/Data/WARGAME/PC
@@ -25,10 +30,14 @@ namespace WargameModManager {
             if (File.Exists(ini_path)) {
                 if (!tryReadIni(out wargameDir)) {
                     wargameDir = askUserForWargameDir();
+                    _manageProfiles = askUserWhetherToManageProfiles();
+                    createIni();
                 }
             }
             else {
                 wargameDir = askUserForWargameDir();
+                _manageProfiles = askUserWhetherToManageProfiles();
+                createIni();
             }
 
             searchDir = Path.Combine(wargameDir, "Data", "WARGAME", "PC");
@@ -60,19 +69,31 @@ namespace WargameModManager {
                 String exe = Path.Combine(folderPath, "Wargame3.exe");
 
                 if (File.Exists(exe)) {
-
-                    // Save dir for next time:
-                    string[] lines = { "dir:" + folderPath,
-                        // dont autoupdate on first run, but set it for future
-                        "autoupdate:true" };
-                    File.WriteAllLines(ini_path, lines);
-
                     return folderPath;
                 }
 
                 // Files not found, try again..
                 return askUserForWargameDir(exe + " not found. \n");
             }
+        }
+
+        public bool askUserWhetherToManageProfiles() {
+            String text = "Your wargame profile contains your level, your winrate,"
+                + " and your decks. Do you want to use mod-specific profiles?"
+                + Environment.NewLine + "If you enable this, "
+                + "your current profile will be copied, but any future changes to your decks will only show up when playing the mod you made them in.";
+            return DialogResult.Yes == MessageBox.Show(text, "Question",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        }
+
+        private void createIni() {
+            // Save dir for next time:
+            string[] lines = { "dir:" + wargameDir,
+                // dont autoupdate on first run, but set it for future
+                "autoupdate:true",
+                "manageprofiles:" + _manageProfiles.ToString().ToLower()
+            };
+            File.WriteAllLines(ini_path, lines);
         }
 
         private bool tryReadIni(out string result) {
@@ -82,6 +103,10 @@ namespace WargameModManager {
             foreach (string line in lines) {
                 if (line == "autoupdate:true") {
                     _autoUpdate = true;
+                }
+
+                if (line == "manageprofiles:true") {
+                    _manageProfiles = true;
                 }
 
                 if (line.StartsWith("dir:")) {
