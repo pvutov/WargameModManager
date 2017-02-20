@@ -37,7 +37,9 @@ namespace WargameModManager {
             // Swap in mods
             var selectedButton = modsLayoutPanel.Controls.OfType<RadioButton>()
                                       .FirstOrDefault(r => r.Checked);
-            directories.activateMod(selectedButton.Text);
+            if (selectedButton != null) {
+                directories.activateMod(selectedButton.Text);
+            }
 
             // Start wargame
             var processStartInfo = new ProcessStartInfo {
