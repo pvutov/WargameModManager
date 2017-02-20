@@ -77,15 +77,23 @@ namespace WargameModManager {
             }
         }
 
+        /// <summary>
+        /// Show the user a prompt explaining profile management and ask whether to enable it.
+        /// </summary>
+        /// <returns></returns>
         public bool askUserWhetherToManageProfiles() {
             String text = "Your wargame profile contains your level, your winrate,"
                 + " and your decks. Do you want to use mod-specific profiles?"
                 + Environment.NewLine + "If you enable this, "
-                + "your current profile will be copied, but any future changes to your decks will only show up when playing the mod you made them in.";
+                + "your current profile will be copied, but any future changes to your decks will only show up when playing the mod you made them in."
+                + Environment.NewLine + "(If you're not sure, I recommend 'yes')";
             return DialogResult.Yes == MessageBox.Show(text, "Question",
                         MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         }
 
+        /// <summary>
+        /// Write settings to file.
+        /// </summary>
         private void createIni() {
             // Save dir for next time:
             string[] lines = { "dir:" + wargameDir,
@@ -201,6 +209,10 @@ namespace WargameModManager {
                 .Select(d => new DirectoryInfo(d).Name).ToArray();
         }
 
+        /// <summary>
+        /// Place the game files of the selected mod in the game dir, and change the player profile if profile management is enabled.
+        /// </summary>
+        /// <param name="modName"></param>
         public void activateMod(String modName) {
             if (modName != "vanilla") {
                 string modDir = getModFilesDir(modName);
