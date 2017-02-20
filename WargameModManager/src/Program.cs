@@ -11,6 +11,12 @@ namespace WargameModManager {
         /// </summary>
         [STAThread]
         static void Main(String [] args) {
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(
+                delegate (Object sender, UnhandledExceptionEventArgs e) {
+                    Program.warning(e.ExceptionObject.ToString());
+                }
+            );
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1(args));
