@@ -33,15 +33,15 @@ namespace WargameModManager {
             latestVersion = Utility.getStringJsonField("tag_name", responseJson);
             patchNotes = Utility.getStringJsonField("body", responseJson);
             downloadUrl = Utility.getStringJsonField("browser_download_url", responseJson);
-
-            DirectoryInfo di = Directory.CreateDirectory(Path.GetTempPath() + "WargameModManager");
+                        
             downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManager");
-            zipPath = Path.Combine(downloadDir, "WargameModManagerUpdate.zip");
-
-            // make sure download dir is empty
-            foreach (FileInfo file in di.GetFiles()) {
-                file.Delete();
+            DirectoryInfo di = new DirectoryInfo(downloadDir);
+            // remove old files if program didn't clean up last time
+            if (di.Exists) {
+                di.Delete(true);
             }
+            di.Create();
+            zipPath = Path.Combine(downloadDir, "WargameModManagerUpdate.zip");
         }
 
         public bool checkForUpdates() {
