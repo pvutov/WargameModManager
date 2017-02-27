@@ -1,10 +1,10 @@
-For users:
+------ BASIC INFO -----------
 
-This tool automates the replacement of mod files. This includes .dat files in you Wargame install dir and your wargame player profile in STEAM_INSTALL_DIR\userdata\...\251060\remote. 
+This tool automates the replacement of mod files. This includes .dat files in your Wargame install dir and your WRD player profile in STEAM_INSTALL_DIR\userdata\...\251060\remote. 
 
 The program has not been extensively tested in multi-user settings. If multiple people play Wargame on your computer, you should either:
 -have everyone use the same ModManager
--OR launch the game using the vanilla configuration after every play session, so that the game is restored to unmodded state
+-OR launch the game using the vanilla configuration after every play session, so that the game is restored to unmodded state.
 
 ------ DETAILS --------------
 
