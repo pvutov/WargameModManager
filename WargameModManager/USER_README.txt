@@ -6,6 +6,8 @@ If you share the Steam or Wargame installation with other users on the same PC, 
 
 The mods/vanilla folder is automatically managed by the program. It will only be correct if your wargame wasn't modded when you started using this program [delete the vanilla folder and verify game files if selecting "vanilla" starts a modded game].
 
+Troubleshooting: IF vanilla doesn't launch an umodded game, delete the contents of the mods/vanilla folder and verify game cache. The next time you use a mod, your now verified files will be backed up in the now emptied mods/vanilla folder.
+
 UNINSTALL: 
 Before deleting this tool, launch the game with the "vanilla" option so that any mods are removed.
 Alternatively, verify integrity of game files and set the vanilla player profile in STEAM_INSTALL_DIR\userdata\...\251060\remote.
