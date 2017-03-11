@@ -309,16 +309,36 @@ namespace WargameModManager {
             }
 
             DirectoryInfo[] dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
-            if (!Directory.Exists(destDirName)) {
+            Directory.CreateDirectory(destDirName);
+
+            // Sometimes, explorer doesn't release file handles,
+            // causing directory creation to fail.
+            // If this happens, keep retrying for a while:
+            int timeout = 100;
+            int retryTime = 100;
+            while (!Directory.Exists(destDirName)) {
+                System.Threading.Thread.Sleep(retryTime);
                 Directory.CreateDirectory(destDirName);
+
+                if (timeout-- < 0) {
+                    Program.warning("Timed out while trying to write to mod"
+                        + "directory. It's likely that the update process has failed"
+                        + "and you will have to redownload the affected mod manually.");
+                    break;
+                }
             }
 
             // Get the files in the directory and copy them to the new location.
             FileInfo[] files = dir.GetFiles();
             foreach (FileInfo file in files) {
                 string temppath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(temppath, true);
+                try {
+                    file.CopyTo(temppath, true);
+                }
+                catch (UnauthorizedAccessException) {
+                    System.Threading.Thread.Sleep(retryTime);
+                    file.CopyTo(temppath, true);
+                }
             }
 
             // If copying subdirectories, copy them and their contents to new location.

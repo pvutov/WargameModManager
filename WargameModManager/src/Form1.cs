@@ -8,6 +8,7 @@ namespace WargameModManager {
     public partial class Form1 : Form {
         private String[] args;
         private PathFinder directories;
+        private bool updating = false;
 
         public Form1(String[] args) {
             this.args = args;
@@ -21,7 +22,7 @@ namespace WargameModManager {
                 button.Text = modName;
 
                 button.Padding = new Padding(0);
-                button.Size = new Size(button.Size.Width, 20);
+                button.Size = new Size(modsLayoutPanel.Width, 20);
                 modsLayoutPanel.Controls.Add(button);
             }
         }
@@ -34,6 +35,11 @@ namespace WargameModManager {
         }
 
         private void launchButton_Click(object sender, EventArgs e) {
+            if (updating) {
+                Program.warning("Mods are being updated. Try again in 10 seconds.");
+                return;
+            }
+
             // Swap in mods
             var selectedButton = modsLayoutPanel.Controls.OfType<RadioButton>()
                                       .FirstOrDefault(r => r.Checked);
@@ -58,7 +64,6 @@ namespace WargameModManager {
         }
 
         private void updateButton_Click(object sender, EventArgs e) {
-
             // CHECK FOR MOD UPDATES
             bool newest = true;
 
@@ -85,22 +90,17 @@ namespace WargameModManager {
                     DialogResult decision = MessageBox.Show(message, caption,
                         MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (decision == DialogResult.Yes) {
+                        updating = true;
                         this.Controls.Remove(updateButton);
                         this.Controls.Add(container);
 
-                        modUpdater.applyUpdate((int val) => { progressBar.Value = val; });
-
-                        // remove progress bar when it is done
-                        var t = new Timer();
-                        t.Interval = 2000;
-                        t.Tick += (s, _) => {
-                            if (progressBar.Value == progressBar.Maximum) {
-                                this.Controls.Remove(container);
-                                this.Controls.Add(updateButton);
-                                t.Stop();
-                            }
-                        };
-                        t.Start();
+                        modUpdater.applyUpdate((int val) => { progressBar.Value = val; }, 
+                                                      () => {
+                                                          updating = false;
+                                                          // remove progress bar when it is done
+                                                          this.Controls.Remove(container);
+                                                          this.Controls.Add(updateButton);
+                                                      });
                     }
 
                 }

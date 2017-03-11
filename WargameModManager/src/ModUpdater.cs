@@ -79,7 +79,12 @@ namespace WargameModManager {
             return latestVer > currentVersion;
         }
 
-        public void applyUpdate(Action<int> reportProgress) {
+        /// <summary>
+        /// Download and install the update.
+        /// </summary>
+        /// <param name="reportProgress"> A callback for reporting download progress. </param>
+        /// <param name="done"> A callback used to report when the entire update process has completed. </param>
+        public void applyUpdate(Action<int> reportProgress, Action done) {
             using (WebClient wc = new WebClient()) {
                 wc.DownloadProgressChanged += delegate (object sender, DownloadProgressChangedEventArgs e) {
                     reportProgress(e.ProgressPercentage);
@@ -89,10 +94,11 @@ namespace WargameModManager {
                 wc.DownloadFileCompleted += delegate (object sender, System.ComponentModel.AsyncCompletedEventArgs e) {
                     System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, downloadDir);
                     File.Delete(zipPath);
-                    Directory.Delete(modDir, true);
+                    DeleteDirectory(modDir);
                     Directory.CreateDirectory(modDir);
                     PathFinder.directoryCopy(downloadDir, modDir, true);
-                    Directory.Delete(downloadDir, true);
+                    DeleteDirectory(downloadDir);
+                    done();
                 };
 
                 wc.DownloadFileAsync(new Uri(downloadUrl), zipPath);
@@ -101,6 +107,29 @@ namespace WargameModManager {
 
         public string getPatchNotes() {
             return patchNotes;
+        }
+
+        /// <summary>
+        /// Directory.Delete(path, true) fails if a subdirectory
+        /// is open in windows explorer, because the file handles
+        /// are not released fast enough. This is a fix for that problem.
+        /// </summary>
+        public static void DeleteDirectory(string path) {
+            foreach (string directory in Directory.GetDirectories(path)) {
+                DeleteDirectory(directory);
+            }
+
+            try {
+                Directory.Delete(path, true);
+            }
+            catch (IOException) {
+                System.Threading.Thread.Sleep(100);
+                Directory.Delete(path, true);
+            }
+            catch (UnauthorizedAccessException) {
+                System.Threading.Thread.Sleep(100);
+                Directory.Delete(path, true);
+            }
         }
     }
 }
