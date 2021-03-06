@@ -17,6 +17,9 @@ namespace WargameModManager {
 
 
         public ModManagerUpdater() {
+            // Override the .NET 4.5 defaults since github does not support them: 
+            // https://developer.github.com/changes/2018-02-01-weak-crypto-removal-notice/
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(MODMANAGER_LATEST_RELEASE);
 

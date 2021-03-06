@@ -21,6 +21,11 @@ namespace WargameModManager {
         public ModUpdater(ModUpdateInfo modInfo) {
             _modDir = modInfo.getModDir();
             _currentVersion = modInfo.getVersion();
+
+            // Override the .NET 4.5 defaults since github does not support them: 
+            // https://developer.github.com/changes/2018-02-01-weak-crypto-removal-notice/
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             HttpWebRequest request = null;
             try {
                 request = (HttpWebRequest)WebRequest.Create(modInfo.getUrl());
