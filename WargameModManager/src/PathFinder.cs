@@ -269,42 +269,50 @@ namespace WargameModManager {
             }
 
             // profiles
-            if (_manageProfiles) {
-                foreach (DirectoryInfo userFolder in _steamUsersDir.GetDirectories()) {
+                foreach (DirectoryInfo userFolder in _steamProfileDir.GetDirectories()) {
                     DirectoryInfo wargameProfileDir = new DirectoryInfo(Path.Combine(userFolder.FullName, WARGAME_ID_FOLDER, "remote"));
-                    if (wargameProfileDir.Exists) {
-                        String extension = ".wargameprofile";
-                        String activeProfile = Path.Combine(wargameProfileDir.FullName, "PROFILE" + extension);
-
-                        // On first launch, create backup dir and save vanilla profile
-                        String backupDirName = "modmanager";
-                        String backupDir = Path.Combine(wargameProfileDir.FullName, backupDirName);
-                        if (!Directory.Exists(backupDir)) {
-                            Directory.CreateDirectory(backupDir);
-                        }
-
-                        // On first mod launch, create a profile for that mod from the last profile used. 
-                        String modProfile = Path.Combine(backupDir, modName + extension);
-                        if (!File.Exists(modProfile)) {
-                            File.Copy(activeProfile, modProfile, false);
-                        }
-
-                        // Find out what mod was used in the previous launch
-                        String lastModUsedFile = Path.Combine(backupDir, "LAST");
-                        String lastModUsed = "vanilla";
-                        if (File.Exists(lastModUsedFile)) {
-                            lastModUsed = File.ReadAllLines(lastModUsedFile)[0];
-                        }
-
-                        // Save user progress from the previous session
-                        String lastModUsedProfile = Path.Combine(backupDir, lastModUsed + extension);
-                        File.Copy(activeProfile, lastModUsedProfile, true);
-
-                        // Write what mod this session used, and place the appropriate profile.
-                        File.WriteAllText(lastModUsedFile, modName);
-                        File.Copy(modProfile, activeProfile, true);
-                    }
+                    swapProfile(wargameProfileDir, modName);
                 }
+            }
+        }
+
+        private void swapProfile(DirectoryInfo wargameProfileDir, string modName)
+        {
+            if (wargameProfileDir.Exists)
+            {
+                String extension = ".wargameprofile";
+                String activeProfile = Path.Combine(wargameProfileDir.FullName, "PROFILE" + extension);
+
+                // On first launch, create backup dir and save vanilla profile
+                String backupDirName = "modmanager";
+                String backupDir = Path.Combine(wargameProfileDir.FullName, backupDirName);
+                if (!Directory.Exists(backupDir))
+                {
+                    Directory.CreateDirectory(backupDir);
+                }
+
+                // On first mod launch, create a profile for that mod from the last profile used.
+                String modProfile = Path.Combine(backupDir, modName + extension);
+                if (!File.Exists(modProfile))
+                {
+                    File.Copy(activeProfile, modProfile, false);
+                }
+
+                // Find out what mod was used in the previous launch
+                String lastModUsedFile = Path.Combine(backupDir, "LAST");
+                String lastModUsed = "vanilla";
+                if (File.Exists(lastModUsedFile))
+                {
+                    lastModUsed = File.ReadAllLines(lastModUsedFile)[0];
+                }
+
+                // Save user progress from the previous session
+                String lastModUsedProfile = Path.Combine(backupDir, lastModUsed + extension);
+                File.Copy(activeProfile, lastModUsedProfile, true);
+
+                // Write what mod this session used, and place the appropriate profile.
+                File.WriteAllText(lastModUsedFile, modName);
+                File.Copy(modProfile, activeProfile, true);
             }
         }
 
