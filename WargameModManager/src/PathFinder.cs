@@ -133,17 +133,32 @@ namespace WargameModManager {
                 if (line.StartsWith("dir:")) {
                     result = line.Substring("dir:".Length);
                 }
+
+                if (line.StartsWith("steamprofiledir:"))
+                {
+                    _steamProfileDir = new DirectoryInfo(line.Substring("steamprofiledir:".Length));
+                }
+
+                if (line.StartsWith("epicprofiledir:"))
+                {
+                    _steamProfileDir = new DirectoryInfo(line.Substring("epicprofiledir:".Length));
+                }
             }
 
             return result != "";
         }
 
         public String getWargameDir() {
-            return wargameDir;
+            return _wargameDir;
         }
 
         public String getModsDir() {
-            return Path.Combine(getThisDir(), "mods");
+            string result = Path.Combine(getThisDir(), "mods");
+            if (!new DirectoryInfo(result).Exists)
+            {
+                new DirectoryInfo(result).Create();
+            }
+            return result;
         }
 
         public String getThisDir() {
