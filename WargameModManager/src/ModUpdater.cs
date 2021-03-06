@@ -9,25 +9,25 @@ namespace WargameModManager {
     /// a separate .exe to overwrite files.
     /// </summary>
     class ModUpdater {
-        private Version currentVersion;
-        private string modDir;
-        private String downloadDir;
-        private String zipPath;
-        private String responseJson;
-        private String latestVersion;
-        private String downloadUrl;
-        private String patchNotes;
+        private Version _currentVersion;
+        private string _modDir;
+        private String _downloadDir;
+        private String _zipPath;
+        private String _responseJson;
+        private String _downloadUrl;
+        private readonly String _latestVersion;
+        private readonly String _patchNotes;
 
         public ModUpdater(ModUpdateInfo modInfo) {
-            modDir = modInfo.getModDir();
-            currentVersion = modInfo.getVersion();
+            _modDir = modInfo.getModDir();
+            _currentVersion = modInfo.getVersion();
             HttpWebRequest request = null;
             try {
                 request = (HttpWebRequest)WebRequest.Create(modInfo.getUrl());
             }
             catch (UriFormatException e) {
                 Program.warning("A mod can't be updated because releaseRepo is invalid. To fix this, open "
-                    + Path.Combine(modDir, "UPDATE") 
+                    + Path.Combine(_modDir, "UPDATE") 
                     + " and delete or adjust the releaseRepo line."
                     + Environment.NewLine + Environment.NewLine + "Detailed Exception: " 
                     + Environment.NewLine + e.ToString());
@@ -35,7 +35,7 @@ namespace WargameModManager {
                 
                 
                 // Allow checkForUpdates() to do nothing:
-                latestVersion = currentVersion.ToString();
+                _latestVersion = _currentVersion.ToString();
                 return;
             }
 
@@ -46,37 +46,37 @@ namespace WargameModManager {
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream)) {
-                responseJson = reader.ReadToEnd();
+                _responseJson = reader.ReadToEnd();
             }
 
-            latestVersion = Utility.getStringJsonField("tag_name", responseJson);
-            patchNotes = Utility.getStringJsonField("body", responseJson);
-            downloadUrl = Utility.getStringJsonField("browser_download_url", responseJson);
+            _latestVersion = Utility.getStringJsonField("tag_name", _responseJson);
+            _patchNotes = Utility.getStringJsonField("body", _responseJson);
+            _downloadUrl = Utility.getStringJsonField("browser_download_url", _responseJson);
 
             
-            downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManagerMods");
-            DirectoryInfo di = new DirectoryInfo(downloadDir);
+            _downloadDir = Path.Combine(Path.GetTempPath(), "WargameModManagerMods");
+            DirectoryInfo di = new DirectoryInfo(_downloadDir);
             // remove old files if program didn't clean up last time
             if (di.Exists) {
                 di.Delete(true);
             }
             di.Create();
 
-            zipPath = Path.Combine(downloadDir, "WargameModManagerUpdate.zip");
+            _zipPath = Path.Combine(_downloadDir, "WargameModManagerUpdate.zip");
 
         }
 
         public bool checkForUpdates() {
             Version latestVer;
             try {
-                latestVer = new Version(this.latestVersion);
+                latestVer = new Version(this._latestVersion);
             }
             catch (FormatException) {
                 Program.warning("Version of latest git release could not be parsed.");
                 return false;
             }
 
-            return latestVer > currentVersion;
+            return latestVer > _currentVersion;
         }
 
         /// <summary>
@@ -92,21 +92,21 @@ namespace WargameModManager {
 
                 // after download
                 wc.DownloadFileCompleted += delegate (object sender, System.ComponentModel.AsyncCompletedEventArgs e) {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, downloadDir);
-                    File.Delete(zipPath);
-                    DeleteDirectory(modDir);
-                    Directory.CreateDirectory(modDir);
-                    PathFinder.directoryCopy(downloadDir, modDir, true);
-                    DeleteDirectory(downloadDir);
+                    System.IO.Compression.ZipFile.ExtractToDirectory(_zipPath, _downloadDir);
+                    File.Delete(_zipPath);
+                    DeleteDirectory(_modDir);
+                    Directory.CreateDirectory(_modDir);
+                    PathFinder.directoryCopy(_downloadDir, _modDir, true);
+                    DeleteDirectory(_downloadDir);
                     done();
                 };
 
-                wc.DownloadFileAsync(new Uri(downloadUrl), zipPath);
+                wc.DownloadFileAsync(new Uri(_downloadUrl), _zipPath);
             }
         }
 
         public string getPatchNotes() {
-            return patchNotes;
+            return _patchNotes;
         }
 
         /// <summary>
