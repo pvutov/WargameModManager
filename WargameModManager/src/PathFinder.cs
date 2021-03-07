@@ -10,7 +10,7 @@ namespace WargameModManager {
     class PathFinder {
         private String ini_path = AppDomain.CurrentDomain.BaseDirectory + "settings.ini";
         private readonly String WARGAME_ID_FOLDER = "251060";
-        private string wargameDir;
+        private string _wargameDir;
         private bool _autoUpdate = false;
         public bool autoUpdate {
             get { return _autoUpdate; }
@@ -21,39 +21,49 @@ namespace WargameModManager {
             get { return _manageProfiles; }
         }
 
-        private DirectoryInfo _steamUsersDir;
+        private DirectoryInfo _epicProfileDir = null;
+        private DirectoryInfo _steamProfileDir = null;
 
         /// <summary>
         /// The folder all wargame updates go into. 
         /// Probably ..DirOfExe/Data/WARGAME/PC
         /// </summary>
-        private string searchDir;
+        private string _searchDir;
 
         public PathFinder() {
 
-            if (File.Exists(ini_path)) {
-                if (!tryReadIni(out wargameDir)) {
-                    wargameDir = askUserForWargameDir();
-                    _manageProfiles = askUserWhetherToManageProfiles();
-                    createIni();
-                }
+            if (File.Exists(ini_path) && tryReadIni(out _wargameDir)) {
+                // do nothing, settings already loaded from the ini
             }
             else {
-                wargameDir = askUserForWargameDir();
+                _wargameDir = askUserForWargameDir();
                 _manageProfiles = askUserWhetherToManageProfiles();
+
+                // Get steam users dir from the registry
+                if (_manageProfiles)
+                {
+                    bool usingSteam = askUserAboutDistributionPlatform();
+
+                    if (usingSteam)
+                    {
+                        RegistryKey regKey = Registry.CurrentUser;
+                        regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
+
+                        String steamDir = regKey.GetValue("SteamPath").ToString();
+                        _steamProfileDir = new DirectoryInfo(Path.Combine(steamDir, "userdata"));
+                    }
+                    else 
+                    {
+                        _epicProfileDir = new DirectoryInfo(Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+                            "Saved Games", "EugenSystems", "WarGame3"));
+                    }
+                }
+
                 createIni();
             }
 
-            searchDir = Path.Combine(wargameDir, "Data", "WARGAME", "PC");
-
-            // Get steam users dir from the registry
-            if (_manageProfiles) {
-                RegistryKey regKey = Registry.CurrentUser;
-                regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
-
-                String steamDir = regKey.GetValue("SteamPath").ToString();
-                _steamUsersDir = new DirectoryInfo(Path.Combine(steamDir, "userdata"));
-            }
+            _searchDir = Path.Combine(_wargameDir, "Data", "WARGAME", "PC");
         }
 
         private string askUserForWargameDir() {
@@ -105,14 +115,27 @@ namespace WargameModManager {
         }
 
         /// <summary>
+        /// Show the user a prompt asking if they're using steam or epic
+        /// </summary>
+        /// <returns></returns>
+        public bool askUserAboutDistributionPlatform()
+        {
+            String text = "Was your game installed by steam? If you have the game from another game store, answer 'no'.";
+            return DialogResult.Yes == MessageBox.Show(text, "Question",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        }
+
+        /// <summary>
         /// Write settings to file.
         /// </summary>
         private void createIni() {
             // Save dir for next time:
-            string[] lines = { "dir:" + wargameDir,
+            string[] lines = { "dir:" + _wargameDir,
                 // dont autoupdate on first run, but set it for future
                 "autoupdate:true",
-                "manageprofiles:" + _manageProfiles.ToString().ToLower()
+                "manageprofiles:" + _manageProfiles.ToString().ToLower(),
+                _steamProfileDir != null ? "steamprofiledir:" + _steamProfileDir.ToString() : "",
+                _epicProfileDir  != null ? "epicprofiledir:"  + _epicProfileDir.ToString() : ""
             };
             File.WriteAllLines(ini_path, lines);
         }
@@ -141,7 +164,7 @@ namespace WargameModManager {
 
                 if (line.StartsWith("epicprofiledir:"))
                 {
-                    _steamProfileDir = new DirectoryInfo(line.Substring("epicprofiledir:".Length));
+                    _epicProfileDir = new DirectoryInfo(line.Substring("epicprofiledir:".Length));
                 }
             }
 
@@ -174,7 +197,7 @@ namespace WargameModManager {
         /// <param name="fileBeingReplaced"></param>
         public void saveVanillaFile(String fileBeingReplaced) {
             string vanillaDir = Path.Combine(getModsDir(), "vanilla");
-            string suffix = fileBeingReplaced.Substring(searchDir.Length + Path.PathSeparator.ToString().Length);
+            string suffix = fileBeingReplaced.Substring(_searchDir.Length + Path.PathSeparator.ToString().Length);
             string vanillaFile = Path.Combine(vanillaDir, suffix);
 
             if (!File.Exists(vanillaFile)) {
@@ -195,7 +218,7 @@ namespace WargameModManager {
 
         private String findNewestFolder(String filename) {
             string result = null;
-            DirectoryInfo di = new DirectoryInfo(searchDir);
+            DirectoryInfo di = new DirectoryInfo(_searchDir);
 
             // Order from newest
             var ordered = di.GetDirectories().OrderByDescending(x => x.Name);
@@ -241,7 +264,8 @@ namespace WargameModManager {
         /// Place the game files of the selected mod in the game dir, and change the player profile if profile management is enabled.
         /// </summary>
         /// <param name="modName"></param>
-        public void activateMod(String modName) {
+        public void activateMod(String modName)
+        {
             // files
             if (modName != "vanilla") {
                 string modDir = getModFilesDir(modName);
@@ -249,7 +273,7 @@ namespace WargameModManager {
                 foreach (string versionFolder in Directory.GetDirectories(modDir)) {
                     string versionFolderShort = new DirectoryInfo(versionFolder).Name;
                     string src = Path.Combine(modDir, versionFolderShort);
-                    string dst = Path.Combine(searchDir, versionFolderShort);
+                    string dst = Path.Combine(_searchDir, versionFolderShort);
                     string vanillaDir = Path.Combine(getModsDir(), "vanilla");
 
                     directoryCopyWithVanillaBackup(src, dst, vanillaDir, true);
@@ -265,10 +289,15 @@ namespace WargameModManager {
             }
             else {
                 string vanillaDir = Path.Combine(getModsDir(), "vanilla");
-                directoryCopy(vanillaDir, searchDir, true);
+                directoryCopy(vanillaDir, _searchDir, true);
             }
 
             // profiles
+            if (_manageProfiles && _epicProfileDir != null) {
+                swapProfile(_epicProfileDir, modName);
+            }
+
+            if (_manageProfiles && _steamProfileDir != null) {
                 foreach (DirectoryInfo userFolder in _steamProfileDir.GetDirectories()) {
                     DirectoryInfo wargameProfileDir = new DirectoryInfo(Path.Combine(userFolder.FullName, WARGAME_ID_FOLDER, "remote"));
                     swapProfile(wargameProfileDir, modName);
