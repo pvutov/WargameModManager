@@ -16,3 +16,11 @@ YOURMOD/UPDATE <- If you want update functionality enabled for your mod,
 			body - containing a change list
 			
 Moving YOURMOD/ under mods/ will get the mod manager to detect it.
+
+
+Sample settings.ini file (should not be necessary; if you start the program without settings.ini, it will be generated):
+dir:H:\EpicLibrary\WargameRedDragon
+manageprofiles:true
+autoupdate:false
+#steamprofiledir:C:\Program Files (x86)\Steam\userdata\
+epicprofiledir:C:\Users\root\Saved Games\EugenSystems\WarGame3
